@@ -96,7 +96,16 @@ extern uVectorEntry __vector_table;
 
 int iSockID = -1;
 int noteIndex = 0;
-unsigned long hitThreshold = DEFAULT_HIT_THRESHOLD;
+unsigned long hitThreshold = MILLISECONDS_TO_TICKS(DEFAULT_HIT_THRESHOLD_MS);
+unsigned long screenThreshold = MILLISECONDS_TO_TICKS(DEFAULT_SCREEN_THRESHOLD_MS);
+
+char MISSCC[5] = "MISS";
+char HITCC[4] = "HIT";
+
+// Arrow coordinates
+volatile int y = 0;
+int x = 1;
+volatile int hit = -1;
 
 Note notes_ms[100]; // Save Note.delay in ms
 Note notes[100];    // Save Note.delay in ticks
@@ -170,6 +179,7 @@ void TimerBaseA0IntHandler(){
         MAP_TimerIntClear(TIMERA0_BASE, ulInts);
 
     Report("Timer wraped. Note: %i\t Lane: %i\n", noteIndex, notes[noteIndex].lane);
+    y = 0;
     noteIndex++;
     if(notes[noteIndex].lane == -1){
         //Game end
@@ -236,16 +246,16 @@ void main() {
     // Turn on the timers feeding values in mSec
     //
 //    Timer_IF_Start(TIMERA0_BASE, TIMER_A, notes_ms[0].delay);
-    Report("tickks: %u %u %u\n", notes[0].delay, notes[1].delay, notes[2].delay);
+    Report("tickks: %u %u %u \tScreen threshold: %u\n", notes[0].delay, notes[1].delay, notes[2].delay, screenThreshold);
     TimerLoadSet(TIMERA0_BASE, TIMER_A, notes[0].delay);
     TimerEnable(TIMERA0_BASE, TIMER_A);
 
-    int d = 90;
-        int y0 = -3*d;
-        int y1 = -4*d;
-        int y2 = 0;
-        int y3 = -2*d;
-        int bot = 97;
+//    int d = 90;
+//        int y0 = -3*d;
+//        int y1 = -4*d;
+//        int y2 = 0;
+//        int y3 = -2*d;
+//        int bot = 97;
         while(1){
             //coverNote(0, &y0);
 //            int d = drawLeft(1, &y0, MAGENTA);
@@ -266,6 +276,48 @@ void main() {
 //            y1+=4;
 //            y2+=4;
 //            y3+=4;
+            unsigned long time = TimerValueGet(TIMERA0_BASE, TIMER_A);   // Time until next note
+//            Report("TIME: %u\t", time);
+//            long time_diff = notes[noteIndex].delay - time;
+
+            if(time < screenThreshold){
+//                int y_new = 98 - ((double)(time * 98) / (double)(screenThreshold));
+                int y_new = (98.0f - (((double)time*98) / (float)screenThreshold));
+//                int y_new = ((screenThreshold - time) * 98) / screenThreshold;
+
+                if (y_new == y){continue;}
+                else if(y_new == 97){
+//                    fillRect(x, 97, 31, 31, BLACK);
+                    continue;
+                }
+                x = notes[noteIndex].lane * 32 + 1;
+                fillRect(x, y, 31, 31, BLACK);
+//                Report(" Display y: %d\tPercentage: %u\t", y, ((time * 98) / screenThreshold));
+                Report("y: %i\t", y_new);
+//                drawLeft(1, y_new, MAGENTA);
+                drawArrow(x, y_new, notes[noteIndex].lane);
+                y = y_new;
+            }
+
+
+            char *text;
+                int xc = 52;
+                if(hit){
+                    text = HITCC;
+                    xc = 64-9*2;
+                    hit = -1;
+                } else{
+                    text = MISSCC;
+                    xc = 64-12*2;
+                    hit = -1;
+                }
+                int i = 0;
+                for (i = 0; text[i] != '\0'; i++) {
+                            drawChar(xc, 64, text[i], WHITE, RED, 2);
+                            xc += 12; // Advance x for next character (adjust spacing as needed)
+                }
+
+
         }
     //
     // Loop forever while the timers run.
