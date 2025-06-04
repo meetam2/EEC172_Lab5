@@ -1,0 +1,203 @@
+//*****************************************************************************
+// Pin Connections
+//   MOSI (SI)  P7 on P2 header
+//   SCK (CL)   P5 on P1 header
+//   DC         P62 on P1 header
+//   RESET (R)  P59 on P1 header
+//   OLEDCS (OC) P61 on P1
+//   SDCS (SC)  n.c. (no connection)
+//   MISO (SO)  n.c. (no connection)
+//   CD         n.c. (no connection)
+//   3V         n.c. (no connection)
+//   Vin (+)    3.3V
+//   GND (G)    GND
+//  IR SENSOR   P63 on p3
+//
+//  (INTERNAL)
+//  SW2     P15 GPIOA2_BASE, .pin = 0x40
+//  SW3     P4  GPIOA1_BASE, .pin = 0x20
+//
+//  (Touch Sensor)
+//  IO      P16 GPIOA2_BASE, .pin = 0x80
+//  VCC     3.3V rail on breadboard
+//  GND     GND rail on breadboard
+//*****************************************************************************
+
+#include <stdio.h>
+#include "simplelink.h"
+#include "hw_types.h"
+#include "hw_memmap.h"
+#include "hw_ints.h"
+#include "rom.h"
+#include "rom_map.h"
+#include "prcm.h"
+#include "gpio.h"
+#include "utils.h"
+#include "spi.h"
+#include "Adafruit_SSD1351.h"
+#include "Adafruit_GFX.h"
+#include "pin_mux_config.h"
+#include "oled_test.h"
+#include "pin.h"
+
+extern void (* const g_pfnVectors[])(void);
+
+#define SW3_BASE GPIOA1_BASE
+#define SW3_PIN  0x20 //PIN04
+
+#define GPIO_PIN_TYPE_STD_WPU 0x0000000A
+#define GPIO_STRENGTH_2MA     0x00000001
+
+
+// Setup SW3
+void InitSW3() {
+    MAP_PRCMPeripheralClkEnable(PRCM_GPIOA1, PRCM_RUN_MODE_CLK);
+    MAP_GPIODirModeSet(SW3_BASE, SW3_PIN, GPIO_DIR_MODE_IN);
+}
+
+// Check if SW3 is pressed
+int isSW3Pressed() {
+    return (MAP_GPIOPinRead(SW3_BASE, SW3_PIN) & SW3_PIN) == 0;
+}
+
+//volatile int buttonPressed = 0;
+
+//void TouchIntHandler(void) {
+//    unsigned long ulStatus = MAP_GPIOIntStatus(GPIOA2_BASE, true);
+//    MAP_GPIOIntClear(GPIOA2_BASE, ulStatus);
+//    MAP_UtilsDelay(800000); // debounce
+//    if (ulStatus & GPIO_PIN_7) {
+//        buttonPressed = 1;
+//    }
+//}
+//
+//void InitTouchInterrupt() {
+//    MAP_GPIOIntTypeSet(GPIOA2_BASE, GPIO_PIN_7, GPIO_RISING_EDGE);
+//    MAP_GPIOIntRegister(GPIOA2_BASE, TouchIntHandler);
+//    MAP_GPIOIntClear(GPIOA2_BASE, GPIO_PIN_7);
+//    MAP_GPIOIntEnable(GPIOA2_BASE, GPIO_PIN_7);
+//}
+
+static void BoardInit(void) {
+#if defined(ccs)
+    MAP_IntVTableBaseSet((unsigned long)&g_pfnVectors[0]);
+#endif
+    MAP_IntMasterEnable();
+    MAP_IntEnable(FAULT_SYSTICK);
+    PRCMCC3200MCUInit();
+}
+
+static void SPIInit(void) {
+    MAP_SPIReset(GSPI_BASE);
+    MAP_SPIConfigSetExpClk(GSPI_BASE, MAP_PRCMPeripheralClockGet(PRCM_GSPI),
+                           8000000, SPI_MODE_MASTER, SPI_SUB_MODE_0,
+                           (SPI_SW_CTRL_CS |
+                            SPI_4PIN_MODE |
+                            SPI_TURBO_OFF |
+                            SPI_CS_ACTIVELOW |
+                            SPI_WL_8));
+    MAP_SPIEnable(GSPI_BASE);
+}
+
+void drawString(int x, int y, char* str, unsigned int color, unsigned int bg) {
+    setCursor(x, y);
+    while (*str) {
+        drawChar(x, y, *str, color, bg, 1);
+        x += 6;
+        str++;
+    }
+}
+
+
+extern int drawLeft(int x, int* y, unsigned int color);
+extern int drawUp(int x, int* y, unsigned int color);
+extern int drawDown(int x, int* y, unsigned int color);
+extern int drawRight(int x, int* y, unsigned int color);
+
+void main() {
+    BoardInit();
+    PinMuxConfig();
+    SPIInit();
+    Adafruit_Init();
+    fillScreen(BLACK);
+    InitSW3();
+//    InitTouchInterrupt();
+
+    MAP_PRCMPeripheralClkEnable(PRCM_GPIOA1, PRCM_RUN_MODE_CLK);
+    MAP_GPIODirModeSet(SW3_BASE, SW3_PIN, GPIO_DIR_MODE_IN);
+
+
+
+
+    int bot = 97;
+    int sw3Prev = 1;
+    int y0 = -31;
+    int prevY = y0;
+//
+    while (1) {
+        int i;
+        for (i = 0; i < 125; i++) {  // ~5 seconds (25 * 200ms)
+                    MAP_UtilsDelay(100000); // ~50ms
+                }
+
+
+
+
+                int showArrow = 1;
+                int y0 = -31; // Start falling arrow
+                int prevY = y0;
+
+                while (showArrow && y0 <= 128) {
+
+
+                    // Erase previous arrow frame
+                    fillRect(1, prevY, 31, 31, BLACK);
+                    int currentY = y0;
+                    // Draw falling arrow
+                    drawLeft(1, &y0, MAGENTA);
+
+                    // Always redraw stationary arrow
+                    drawLeft(1, &bot, MAGENTA);
+
+
+                    prevY = y0;
+                    MAP_UtilsDelay(100000);  // smooth fall
+                    y0 += 2;
+
+                                // SW3 check
+                                int sw3Now = MAP_GPIOPinRead(SW3_BASE, SW3_PIN) & SW3_PIN;
+                                if (sw3Prev != 0 && sw3Now == 0) {
+                                    int arrow_center = currentY + 17;
+                                    int bot_center = bot + 15;
+                                    int diff = arrow_center - (bot + 15);
+
+                                    fillRect(0, 0, 128, 16, BLACK);  // clear feedback
+
+                                    if (abs(diff) <= 8) {
+                                        drawString(0, 0, "Perfect!", WHITE, BLACK);
+                                    } else if (abs(diff) <= 24 & diff > 0) {
+                                        drawString(0, 0, "Good!", WHITE, BLACK);
+                                    } else {
+                                        drawString(0, 0, "Miss!", WHITE, BLACK);
+                                    }
+
+                                    MAP_UtilsDelay(1500000);
+                                    fillRect(0, 0, 128, 16, BLACK);
+                                    showArrow = 0;  // end this round
+                                }
+
+                                sw3Prev = sw3Now;
+
+
+                            }
+
+                            // Clear last arrow position
+                            fillRect(1, prevY, 31, 31, BLACK);
+
+                            // Ensure stationary arrow still shows
+                                    drawLeft(1, &bot, MAGENTA);
+
+                                    drawLine(0, bot + 15, 127, bot + 15, WHITE);  // helps you see the hit zone
+
+                        }
+                    }

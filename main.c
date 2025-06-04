@@ -96,9 +96,11 @@ extern uVectorEntry __vector_table;
 
 int iSockID = -1;
 int noteIndex = 0;
+unsigned long hitThreshold = DEFAULT_HIT_THRESHOLD;
 
-Note notes_ms[100];
-Note notes[100];
+Note notes_ms[100]; // Save Note.delay in ms
+Note notes[100];    // Save Note.delay in ticks
+Note results[100];   // Note.delay=|ticks| from note, Note.lane=[0,1,2] if MISS, HIT early, or HIT late
 
 //*****************************************************************************
 //                 GLOBAL VARIABLES -- End: df
@@ -142,6 +144,23 @@ static void BoardInit(void) {
     PRCMCC3200MCUInit();
 }
 
+/**
+ * Initializes SPI
+ */
+static void SPIInit(void) {
+    MAP_SPIReset(GSPI_BASE);
+    MAP_SPIConfigSetExpClk(GSPI_BASE, MAP_PRCMPeripheralClockGet(PRCM_GSPI),
+                           8000000, SPI_MODE_MASTER, SPI_SUB_MODE_0,
+                           (SPI_SW_CTRL_CS |
+                            SPI_4PIN_MODE |
+                            SPI_TURBO_OFF |
+                            SPI_CS_ACTIVELOW |    // most SSD1351 modules use ACTIVELOW
+                            SPI_WL_8));
+
+    MAP_SPIEnable(GSPI_BASE);
+
+}
+
 void TimerBaseA0IntHandler(){
     unsigned long ulInts;
         ulInts = MAP_TimerIntStatus(TIMERA0_BASE, true);
@@ -150,12 +169,16 @@ void TimerBaseA0IntHandler(){
         //
         MAP_TimerIntClear(TIMERA0_BASE, ulInts);
 
-    Report("Timer wraped. Note: %i\n", noteIndex);
+    Report("Timer wraped. Note: %i\t Lane: %i\n", noteIndex, notes[noteIndex].lane);
     noteIndex++;
     if(notes[noteIndex].lane == -1){
+        //Game end
+        results[noteIndex].lane = -1;
+        results[noteIndex].delay = -1;
         noteIndex = 0;
     }
 
+    // Load delay of next note
 //    Timer_IF_ReLoad(TIMERA0_BASE, TIMER_A, notes_ms[noteIndex].delay);
     TimerLoadSet(TIMERA0_BASE, TIMER_A, notes[noteIndex].delay);
 }
@@ -180,25 +203,24 @@ void main() {
     InitTerm();
     ClearTerm();
     UART_PRINT("My terminal works!\n\r");
+    //    iSockID = initialize_network();
+    //    http_post(iSockID);
+    //
+    //    sl_Stop(SL_STOP_TIMEOUT);
+    //    LOOP_FOREVER();
 
-//    iSockID = initialize_network();
-//    http_post(iSockID);
-//
-//    sl_Stop(SL_STOP_TIMEOUT);
-//    LOOP_FOREVER();
+    SPIInit();
+    //
+    // Initialize Adafruit OLED
+    //
+    Adafruit_Init();
+    fillScreen(BLACK);
+    fillCircle(WIDTH/2, HEIGHT/2, 10, RED); //test screen
 
-    Note temp[] = {
-        {2500, 1},
-        {3000, 2},
-        {2500, 3},
-        {2000, 2},
-        {-1, -1}
-    };
+    // Initialize game variables
+    InitGame();
 
-    memcpy(notes_ms, temp, sizeof(temp));
-    convert_notes(notes, temp);
-//    Note notes[100] = {{2500, 1}, {3000, 2}, {2500, 3}, {2000,2}, {-1,-1}};
-
+    // Initialize timer
     //
     // Configuring the timer
     //
@@ -218,11 +240,39 @@ void main() {
     TimerLoadSet(TIMERA0_BASE, TIMER_A, notes[0].delay);
     TimerEnable(TIMERA0_BASE, TIMER_A);
 
+    int d = 90;
+        int y0 = -3*d;
+        int y1 = -4*d;
+        int y2 = 0;
+        int y3 = -2*d;
+        int bot = 97;
+        while(1){
+            //coverNote(0, &y0);
+//            int d = drawLeft(1, &y0, MAGENTA);
+//            drawUp(33, &y1, GREEN);
+//            drawDown(65, &y2, BLUE);
+//            drawRight(97, &y3, RED);
+//            MAP_UtilsDelay(400000);
+//            fillRect(1, y0, 31, 31, BLACK);
+//            fillRect(33, y1, 31, 31, BLACK);
+//            fillRect(65, y2, 31, 31, BLACK);
+//            fillRect(97, y3, 31, 31, BLACK);
+//
+//            drawLeft(1, &bot, MAGENTA);
+//            drawUp(33, &bot, GREEN);
+//            drawDown(65, &bot, BLUE);
+//            drawRight(97, &bot, RED);
+//            y0+=4;
+//            y1+=4;
+//            y2+=4;
+//            y3+=4;
+        }
     //
     // Loop forever while the timers run.
     //
     while(1)
     {
+
     }
 
 }

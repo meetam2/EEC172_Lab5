@@ -27,8 +27,10 @@ const PinSetting switch3 = { .port = GPIOA1_BASE, .pin = 0x20};
                                    if (1 != iRetVal) \
                                      return  iRetVal;}
 
-extern Note note[];
+extern Note notes[];
+extern Note results[];
 extern int noteIndex;
+extern unsigned long hitThreshold;
 
 // track systick counter periods elapsed
 // if it is not 0, we know the transmission ended
@@ -104,11 +106,25 @@ readReg(unsigned char ucDevAddr, unsigned char *pucData, unsigned char ucRegOffs
  * Initializes GPIO Interrupts
  */
 void GPIOInit(void) {
-    GPIOIntRegister(switch2.port, SW2IntHandler);
-    GPIOIntTypeSet(switch2.port, switch2.pin, GPIO_FALLING_EDGE);
-//    GPIOIntTypeSet(IR.port, IR.pin, GPIO_FALLING_EDGE);
-    GPIOIntClear(switch2.port, switch2.pin);
-    GPIOIntEnable(switch2.port, switch2.pin);
+////    GPIOIntRegister(switch2.port, SW2IntHandler);
+//    GPIOIntRegister(switch2.port, GameTapIntHandler(switch2.port, switch2.pin));
+//    GPIOIntTypeSet(switch2.port, switch2.pin, GPIO_RISING_EDGE);
+////    GPIOIntTypeSet(IR.port, IR.pin, GPIO_FALLING_EDGE);
+//    GPIOIntClear(switch2.port, switch2.pin);
+//    GPIOIntEnable(switch2.port, switch2.pin);
+    SetGameTapConfig(switch2.port, switch2.pin);
+    GPIO_IF_ConfigureNIntEnable(switch2.port, switch2.pin, GPIO_RISING_EDGE, GameTapIntHandler);
+}
+
+void ConfigureNIntEnable(unsigned int uiGPIOPort,
+                         unsigned char ucGPIOPin,
+                         unsigned int uiIntType,
+                         void (*pfnIntHandler)(void)){
+//    GPIOIntRegister(uiGPIOPort, );
+//    GPIOIntTypeSet(switch2.port, switch2.pin, GPIO_RISING_EDGE);
+////    GPIOIntTypeSet(IR.port, IR.pin, GPIO_FALLING_EDGE);
+//    GPIOIntClear(switch2.port, switch2.pin);
+//    GPIOIntEnable(switch2.port, switch2.pin);
 }
 
 
@@ -118,14 +134,29 @@ void SW2IntHandler(){
     unsigned long ulstatus = GPIOIntStatus(switch2.port, true);
     GPIOIntClear(switch2.port, ulstatus);
 
+    // Disable interrupt
     if (ulstatus & switch2.pin){
 //        MAP_TimerEnable(TIMERA0_BASE, TIMER_A);   // Start debounce timer
 //                MAP_GPIOIntDisable(GPIOA1_BASE, GPIO_PIN_5);  // Disable button interrupt
         GPIOIntDisable(switch2.port, switch2.pin);
     }
-    unsigned int time = TimerValueGet(TIMERA0_BASE, TIMER_A);
-    Report("SW2 pressed. Timer value: %u\n", time);
 
+    unsigned int time = TimerValueGet(TIMERA0_BASE, TIMER_A);   // Time until next note
+    long time_diff = notes[noteIndex].delay - time;             // Time after prev note
+
+    int hit = 0;
+    if(time <= hitThreshold){    // Note HIT early
+        results[noteIndex].lane = HIT_EARLY;
+        hit = HIT_EARLY;
+        results[noteIndex].delay = time;
+    }
+    else if(time_diff <= hitThreshold){  // Note HIT late
+        results[noteIndex].lane = HIT_LATE;
+        hit = HIT_LATE;
+        results[noteIndex].delay = time_diff;
+    }
+    Report("SW2 pressed. Timer value: %u \tDifference: %u \tHIT: %i\n", time, time_diff, hit);
+    // Enable interrupt
     GPIOIntEnable(switch2.port, switch2.pin);
 }
 
