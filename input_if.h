@@ -71,5 +71,19 @@ void SW3IntHandler();
 //****************************************************************************
 int readReg(unsigned char ucDevAddr, unsigned char *pucData, unsigned char ucRegOffset, unsigned char ucRdLen);
 
+//****************************************************************************
+//
+//! Reads BMA222 accelerometer for the acceleration data for the x, y and z axes, respectively
+//!
+//! \param pucData is the pointer to array[3] where data will be placed
+//!         values range between -64, 64
+//!
+//! This function
+//!    1. Invokes the corresponding I2C APIs
+//!
+//! \return 0: Success, < 0: Failure.
+//
+//****************************************************************************
+int getAcc(int iData[3]);
 
 #endif  /*  __INTPUFIF_H__ */

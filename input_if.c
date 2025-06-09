@@ -30,6 +30,8 @@ extern Note notes[];
 extern Note results[];
 extern int noteIndex;
 extern unsigned long hitThreshold;
+extern int INVERTY;
+extern int INVERTX;
 
 
 //****************************************************************************
@@ -100,6 +102,43 @@ readReg(unsigned char ucDevAddr, unsigned char *pucData, unsigned char ucRegOffs
 //    }
 //    printf("\n");
 
+
+    return 0;
+}
+
+//****************************************************************************
+//
+//! Reads BMA222 accelerometer for the acceleration data for the x, y and z axes, respectively
+//!
+//! \param pucData is the pointer to array[3] where data will be placed
+//!         values range between -64, 64
+//!
+//! This function
+//!    1. Invokes the corresponding I2C APIs
+//!
+//! \return 0: Success, < 0: Failure.
+//
+//****************************************************************************
+int getAcc(int iData[3]){
+    unsigned char buffer[6];
+
+    //  Read 6 bytes from accelerometer
+    RET_IF_ERR(readReg(0x18, &buffer[0], 2, 6));
+
+    // Convert and assign to integer array. If INVERT is true, then the value will be 255 - value
+    iData[0] = (INVERTX)? 255 - (int)buffer[1] : (int)buffer[1];
+    iData[1] = (INVERTY)? 255 - (int)buffer[3] : (int)buffer[3];
+    iData[2] = (int)buffer[5];
+
+    //  Map the range from 0-255 to -64-64
+    int i = 0;
+    for(i=0; i<3; i++){
+        if(iData[i] > 128){
+            iData[i] = iData[i] - 255;
+        }
+        if(iData[i] < -64) {iData[i] = -64;}
+        else if(iData[i] > 64) {iData[i] = 64;}
+    }
 
     return 0;
 }

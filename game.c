@@ -63,6 +63,35 @@ void GameTapIntHandler(){
         GPIOIntDisable(port, pin);
     }
 
+    int tilt = 0;
+    int acc[3];;
+    getAcc(acc);
+    int lane = notes[noteIndex].lane;
+
+    //Get tilt direction, tilt=1 if HIT
+    switch(lane) {
+        case 0: // Left
+            if (acc[0] < 0)
+                tilt = 1;
+            break;
+        case 1: // Down
+            if (acc[1] < 0)
+                tilt = 1;
+            break;
+        case 2: // Up
+            if (acc[1] > 0)
+                tilt = 1;
+            break;
+        case 3: // Right
+            if (acc[0] > 0)
+                tilt = 1;
+            break;
+        default:
+            tilt = 0; // Invalid lane
+            return; //Miss
+
+    }
+
     unsigned int time = TimerValueGet(TIMERA0_BASE, TIMER_A);   // Time until next note
     long time_diff = notes[noteIndex].delay - time;             // Time after prev note
 
