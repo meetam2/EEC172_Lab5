@@ -14,6 +14,44 @@ The objective of the final lab was to develop a Rhythm Dance game where a player
 <li>x1 100uF Capacitor</li>
 </ul>
 
+## Pin Connections
+
+### SSD1351 OLED Display
+
+| Signal         | Pin          | Header      | Notes                   |
+|----------------|--------------|-------------|--------------------------|
+| **MOSI (SI)**  | P7           | P2 header   | Serial data input        |
+| **SCK (CL)**   | P5           | P1 header   | Serial clock             |
+| **DC**         | P62          | P1 header   | Data/Command select      |
+| **RESET (R)**  | P59          | P1 header   | Reset                    |
+| **OLEDCS (OC)**| P61          | P1 header   | OLED Chip Select         |
+| **SDCS (SC)**  | _n.c._       | —           | Not connected            |
+| **MISO (SO)**  | _n.c._       | —           | Not connected            |
+| **CD**         | _n.c._       | —           | Not connected            |
+| **3V**         | _n.c._       | —           | Not connected            |
+| **Vin (+)**    | 3.3V         | —           | Power supply             |
+| **GND (G)**    | GND          | —           | Ground                   |
+
+### Additional Peripherals
+
+| Signal        | Pin  | Header    | Notes           |
+|---------------|------|-----------|------------------|
+| **IR SENSOR** | P63  | P3 header |                 |
+| **GPIO**      | P8   | P2 header | Game Input Button |
+
+### Internal GPIO Connections
+
+| Button | Pin | GPIO Base   | Pin Mask |
+|--------|-----|-------------|----------|
+| SW2    | P15 | GPIOA2_BASE | `0x40`   |
+| SW3    | P4  | GPIOA1_BASE | `0x20`   |
+
+### I2C Connections
+
+| Signal | Pin |
+|--------|-----|
+| SCL    | P3  |
+| SDA    | P6  |
 
 
 ## Video Demo
