@@ -18,7 +18,6 @@
 
 #include "game.h"
 
-const PinSetting IR = { .port = GPIOA1_BASE, .pin = 0x20};
 const PinSetting CAP = { .port = GPIOA1_BASE, .pin = 0x20};
 const PinSetting BUTTON = { .port = GPIOA1_BASE, .pin = 0x20};
 const PinSetting switch2 = { .port = GPIOA2_BASE, .pin = 0x40};
@@ -32,30 +31,33 @@ extern Note results[];
 extern int noteIndex;
 extern unsigned long hitThreshold;
 
-// track systick counter periods elapsed
-// if it is not 0, we know the transmission ended
-volatile int systick_cnt = 0;
 
-// track if IR interrupt detected. Resets after transmission ended
-volatile int IRFlag = 0;
+//****************************************************************************
+//// track systick counter periods elapsed
+//// if it is not 0, we know the transmission ended
+//volatile int systick_cnt = 0;
+//
+//// track if IR interrupt detected. Resets after transmission ended
+//volatile int IRFlag = 0;
+//
+//// track if IR transmission finished
+//volatile int IRFinish = 0;
+//
+//// track how many (falling) edges detected in one transmission
+//volatile int edgeCount = 0;
+//
+//// Systick register value
+//unsigned long reg = 0;
+//
+//// Buffer for pulse lengths
+//unsigned long buffer[100];
+//
+//// Track the remote button pushed previously and currently
+//int currentButton = -2;
+//int prevButton = -1;
+//int buttonIndex = 0; //index for set of letters the currentButton corresponds to (e.g. {A,B,C} for button 1)
 
-// track if IR transmission finished
-volatile int IRFinish = 0;
-
-// track how many (falling) edges detected in one transmission
-volatile int edgeCount = 0;
-
-// Systick register value
-unsigned long reg = 0;
-
-// Buffer for pulse lengths
-unsigned long buffer[100];
-
-// Track the remote button pushed previously and currently
-int currentButton = -2;
-int prevButton = -1;
-int buttonIndex = 0; //index for set of letters the currentButton corresponds to (e.g. {A,B,C} for button 1)
-
+//****************************************************************************
 
 //****************************************************************************
 //

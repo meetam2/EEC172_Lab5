@@ -43,7 +43,7 @@
 
 // Variables here: e.g. " "default" : ... , "var": ... "
 
-#define DATAFOOT "\"\r\n"                                            \
+#define DATAFOOT "\r\n"                                            \
                 "}"                                                         \
             "}"                                                             \
         "}\r\n\r\n"
@@ -54,7 +54,7 @@
 int initialize_network();
 int set_time();
 int http_post(int iTLSSockID);
-int http_postmsg(int iTLSSockID);
+int http_postmsg(int iTLSSockID, char *message);
 int http_get(int iTLSSockID);
 
 #endif //  __GPIOIF_H__

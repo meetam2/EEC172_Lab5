@@ -28,7 +28,7 @@ void InitGame(){
     int i = 0;
         for (i = 0; i < 100; i++) {
             results[i].delay = (unsigned long)-1;  // same as 0xFFFFFFFF
-            results[i].lane = -1;                  // as int8_t, this is fine
+            results[i].lane = -1;                  // -1 = miss
         }
 
         Note temp[] = {
@@ -77,6 +77,7 @@ void GameTapIntHandler(){
         hit = HIT_LATE;
         results[noteIndex].delay = time_diff;
     }
+
 
 //    char *text;
 //    int xc = 52;

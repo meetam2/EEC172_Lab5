@@ -136,7 +136,7 @@ int http_post(int iTLSSockID){
 
 
 // HTTP POST request - concatenate headers, TXMsg string, and footers to post message
-int http_postmsg(int iTLSSockID){
+int http_postmsg(int iTLSSockID,char *message){
     char acSendBuff[512];
     char acRecvbuff[1460];
     char cCLLength[200]; //data len
@@ -150,8 +150,8 @@ int http_postmsg(int iTLSSockID){
     pcDataBufHeaders = cDataBuff;
     strcpy(pcDataBufHeaders, DATAHEAD);
     pcDataBufHeaders += strlen(DATAHEAD);
-//    strcpy(pcDataBufHeaders, TXMsg);
-//    pcDataBufHeaders += strlen(TXMsg);
+    strcpy(pcDataBufHeaders, message);
+    pcDataBufHeaders += strlen(message);
     strcpy(pcDataBufHeaders, DATAFOOT);
     pcDataBufHeaders += strlen(DATAFOOT);
 
