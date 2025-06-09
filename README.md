@@ -10,6 +10,7 @@ The objective of the final lab was to develop a Rhythm Dance game where a player
   <li>Adafruit SSD1351 OLED 16-bit Color 1.5</li>
   <li>TSOP31138 IR Sensor</li>
   <li>AT&T S10-S3 Remote TV code:1010</li>
-</ul>
-<li>x1 100 Ω Resistor</li>
+  <li>x1 100 Ω Resistor</li>
 <li>x1 100uF Capacitor</li>
+</ul>
+
