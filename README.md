@@ -15,6 +15,7 @@ The objective of the final lab was to develop a Rhythm Dance game where a player
 </ul>
 
 ## Pin Connections
+![Circuit Diagram](img/circuit_diagram.png?raw=true)
 
 ### SSD1351 OLED Display
 
@@ -39,19 +40,6 @@ The objective of the final lab was to develop a Rhythm Dance game where a player
 | **IR SENSOR** | P63  | P3 header |                 |
 | **GPIO**      | P8   | P2 header | Game Input Button |
 
-### Internal GPIO Connections
-
-| Button | Pin | GPIO Base   | Pin Mask |
-|--------|-----|-------------|----------|
-| SW2    | P15 | GPIOA2_BASE | `0x40`   |
-| SW3    | P4  | GPIOA1_BASE | `0x20`   |
-
-### I2C Connections
-
-| Signal | Pin |
-|--------|-----|
-| SCL    | P3  |
-| SDA    | P6  |
 
 
 ## Video Demo
