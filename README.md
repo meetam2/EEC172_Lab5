@@ -14,3 +14,7 @@ The objective of the final lab was to develop a Rhythm Dance game where a player
 <li>x1 100uF Capacitor</li>
 </ul>
 
+
+
+## Video Demo
+[![RhythmDance demo](https://img.youtube.com/vi/VCMMGPpP9-g/0.jpg)](https://www.youtube.com/watch?v=VCMMGPpP9-g)
